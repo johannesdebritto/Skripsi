@@ -5,12 +5,11 @@ from spk_logic_lstm import evaluasi_spk
 from ai_engine_lstm import hitung_sekuens_prediksi
 from grafik_lstm import buat_grafik_multimodal
 
-
-# Mengambil fungsi Gemini dari file gemini_helper.py
+# Fetch Gemini function from gemini_helper.py
 from gemini_helper import ambil_analisis_gemini 
 
 def tampilkan_hasil_lstm(hari_target, model, scaler, df):
-    # AMBIL TANGGAL AKURAT: Diambil dari baris terakhir dataset (df)
+    # ACCURATE DATE LOGIC: Extracted from the last row of the dataset (df)
     try:
         if 'Tanggal' in df.columns:
             tanggal_terakhir = pd.to_datetime(df['Tanggal'].iloc[-1])
@@ -21,29 +20,30 @@ def tampilkan_hasil_lstm(hari_target, model, scaler, df):
     except Exception:
         tanggal_terakhir = datetime.now()
 
-    # Hitung tanggal target yang sebenarnya
+    # Calculate actual target date & current date string
     tanggal_target = (tanggal_terakhir + timedelta(days=int(hari_target))).strftime("%d/%m/%Y")
+    tanggal_sekarang_str = tanggal_terakhir.strftime("%d %B %Y").upper()
 
-    with st.spinner(f"Mesin LSTM sedang mengkalkulasi prediksi untuk tanggal {tanggal_target}..."):
+    with st.spinner(f"LSTM Engine is calculating projections for {tanggal_target}..."):
         skor, keputusan, warna, indikator, h_sekarang, h_prediksi, selisih, margin = evaluasi_spk(
             hari_target, model, scaler, df
         )
 
-        # 1. Judul trik pakai <div> agar ikon link 100% hilang
-        st.markdown(f"<div style='text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 10px;'>📊 HASIL KEPUTUSAN LSTM ({tanggal_target})</div>", unsafe_allow_html=True)
+        # 1. TITLE (Clean <div> trick to remove anchor link icon)
+        st.markdown(f"<div style='text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 10px;'>📊 LSTM DECISION RESULTS ({tanggal_target})</div>", unsafe_allow_html=True)
         st.divider()
 
         # ---------------------------------------------------------
-        # TAMPILAN KEPUTUSAN UTAMA (Bebas dari Ikon Salin/Hover)
+        # MAIN DECISION BANNER (Dynamic Background Color)
         # ---------------------------------------------------------
         if warna == "success":
-            bg_color = "#28a745"  # Hijau untuk BUY
+            bg_color = "#28a745"  # Green for BUY
         elif warna == "error":
-            bg_color = "#dc3545"  # Merah untuk SELL
+            bg_color = "#dc3545"  # Red for SELL
         else:
-            bg_color = "#ffb300"  # Kuning/Orange gelap untuk HOLD
+            bg_color = "#ffb300"  # Yellow/Dark Orange for HOLD
         
-        # Menggunakan tag <p> raksasa, bukan <h1> agar tidak memicu fitur auto-copy Streamlit
+        # Uses large <p> tag to prevent Streamlit heading auto-copy popup
         st.markdown(
             f"<div style='text-align: center; border-radius: 10px; padding: 20px; background-color: {bg_color};'>"
             f"<p style='color: white; font-weight: 900; margin: 0px; font-size: 48px; text-transform: uppercase; font-family: sans-serif; letter-spacing: 1px;'>{keputusan}</p>"
@@ -51,51 +51,51 @@ def tampilkan_hasil_lstm(hari_target, model, scaler, df):
             unsafe_allow_html=True
         )
         
-        # Tambahan catatan / disclaimer profesional di bawah kotak keputusan
+        # Professional Disclaimer below decision box
         st.markdown(
             "<p style='text-align: center; color: #888888; font-size: 14px; margin-top: 10px;'>"
-            "⚠️ <b>Catatan:</b> Keputusan transaksi sepenuhnya berada di tangan Anda. "
-            "AI ini merupakan alat bantu prediksi probabilistik, bukan jaminan mutlak atau nasihat keuangan."
+            "⚠️ <b>Note:</b> Transaction decisions are entirely at your own discretion. "
+            "This AI serves as a probabilistic forecasting tool, not a guarantee or financial advice."
             "</p>",
             unsafe_allow_html=True
         )
         st.markdown("<br>", unsafe_allow_html=True)
 
-       # ---------------------------------------------------------
-        # ANGKA METRIK UTAMA (Desain Banner Elegan Tanpa Kotak)
         # ---------------------------------------------------------
-        # 1. Format angka dulu ke format Indonesia (titik)
+        # KEY METRICS BANNER (Elegant Unified Layout)
+        # ---------------------------------------------------------
+        # 1. Format numbers with Indonesian period separators
         str_h_sekarang = f"Rp {int(h_sekarang):,}".replace(',', '.')
         str_h_prediksi = f"Rp {int(h_prediksi):,}".replace(',', '.')
         str_margin = f"Rp {int(margin):,}".replace(',', '.')
         
-        # 2. Atur warna dan tanda untuk selisih (Delta)
+        # 2. Configure colors and sign for Delta
         if selisih > 0:
-            warna_selisih = "#28a745" # Hijau
+            warna_selisih = "#28a745" # Green
             tanda = "+"
         elif selisih < 0:
-            warna_selisih = "#dc3545" # Merah
+            warna_selisih = "#dc3545" # Red
             tanda = ""
         else:
-            warna_selisih = "#888888" # Abu-abu
+            warna_selisih = "#888888" # Grey
             tanda = ""
             
         str_selisih = f"{tanda}{int(selisih):,} IDR".replace(',', '.')
 
-        # 3. Tampilkan UI berbentuk Banner menyatu yang cantik
+        # 3. Dynamic layout with current date from dataset
         html_metrik = f"""
         <div style="display: flex; justify-content: space-around; align-items: center; background: linear-gradient(135deg, rgba(240, 242, 246, 0.7), rgba(255, 255, 255, 0.4)); padding: 25px 15px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.05);">
             <div style="text-align: center; flex: 1; border-right: 1px solid rgba(0,0,0,0.1);">
-                <p style="margin:0; font-size: 14px; color: #6b7280; font-weight: 600; letter-spacing: 0.5px;"> HARGA 24 JUNI 2026</p>
+                <p style="margin:0; font-size: 14px; color: #6b7280; font-weight: 600; letter-spacing: 0.5px;">PRICE AS OF {tanggal_sekarang_str}</p>
                 <h3 style="margin: 5px 0 0 0; color: #1f2937; font-size: 26px;">{str_h_sekarang}</h3>
             </div>
             <div style="text-align: center; flex: 1; border-right: 1px solid rgba(0,0,0,0.1);">
-                <p style="margin:0; font-size: 14px; color: #6b7280; font-weight: 600; letter-spacing: 0.5px;"> PROYEKSI AI LSTM</p>
+                <p style="margin:0; font-size: 14px; color: #6b7280; font-weight: 600; letter-spacing: 0.5px;">LSTM AI PROJECTION</p>
                 <h3 style="margin: 5px 0 0 0; color: #1f2937; font-size: 26px;">{str_h_prediksi}</h3>
                 <p style="margin: 0; font-size: 14px; color: {warna_selisih}; font-weight: bold;">{str_selisih}</p>
             </div>
             <div style="text-align: center; flex: 1;">
-                <p style="margin:0; font-size: 14px; color: #6b7280; font-weight: 600; letter-spacing: 0.5px;"> BATAS MARGIN</p>
+                <p style="margin:0; font-size: 14px; color: #6b7280; font-weight: 600; letter-spacing: 0.5px;">MARGIN LIMIT</p>
                 <h3 style="margin: 5px 0 0 0; color: #1f2937; font-size: 26px;">{str_margin}</h3>
             </div>
         </div>
@@ -104,69 +104,67 @@ def tampilkan_hasil_lstm(hari_target, model, scaler, df):
         st.markdown("<br>", unsafe_allow_html=True)
 
         # ---------------------------------------------------------
-        # GRID 2x2: BUKTI INDIKATOR
+        # 2x2 GRID: CORE INDICATOR EVIDENCE
         # ---------------------------------------------------------
-        # 3. Subjudul trik pakai <div> agar ikon link hilang
-        st.markdown("<div style='font-size: 22px; font-weight: bold; margin-top: 15px; margin-bottom: 5px;'>🔍 Bukti Indikator Fondasi Keputusan</div>", unsafe_allow_html=True)
-        st.caption("Data multivariat (30 hari terakhir) yang mendasari analisis sistem pakar.")
+        st.markdown("<div style='font-size: 22px; font-weight: bold; margin-top: 15px; margin-bottom: 5px;'>🔍 Core Decision Indicators</div>", unsafe_allow_html=True)
+        st.caption("Multivariate data (last 30 days) underlying the expert system analysis.")
 
         col1, col2 = st.columns(2)
 
-        # Kotak Kiri Atas (AI LSTM)
+        # Top Left (AI LSTM)
         with col1:
             with st.container(border=True):
-                st.markdown(f"**{indikator['ai']['icon']} Tren Prediksi AI LSTM**")
-                st.metric("Estimasi Profit/Loss", f"Rp {int(indikator['ai']['delta']):,}".replace(',', '.'), indikator['ai']['sentimen'])
+                st.markdown(f"**{indikator['ai']['icon']} LSTM AI Prediction Trend**")
+                st.metric("Estimated Profit/Loss", f"Rp {int(indikator['ai']['delta']):,}".replace(',', '.'), indikator['ai']['sentimen'])
 
-        # Kotak Kanan Atas (KURS USD)
+        # Top Right (USD RATE)
         with col2:
             with st.container(border=True):
-                st.markdown(f"**{indikator['kurs']['icon']} Makroekonomi: Kurs USD/IDR**")
-                st.metric("Nilai Kurs Aktual", f"Rp {int(indikator['kurs']['sekarang']):,}".replace(',', '.'), f"{int(indikator['kurs']['delta']):,} IDR".replace(',', '.'), delta_color="inverse")
+                st.markdown(f"**{indikator['kurs']['icon']} Macroeconomics: USD/IDR Rate**")
+                st.metric("Actual Exchange Rate", f"Rp {int(indikator['kurs']['sekarang']):,}".replace(',', '.'), f"{int(indikator['kurs']['delta']):,} IDR".replace(',', '.'), delta_color="inverse")
 
         col3, col4 = st.columns(2)
 
-        # Kotak Kiri Bawah (MINYAK DUNIA)
+        # Bottom Left (CRUDE OIL)
         with col3:
             with st.container(border=True):
-                st.markdown(f"**{indikator['minyak']['icon']} Komoditas: Minyak Dunia (IDR)**")
-                st.metric("Nilai Aktual per Barel", f"Rp {int(indikator['minyak']['sekarang']):,}".replace(',', '.'), f"{int(indikator['minyak']['delta']):,} IDR".replace(',', '.'))
+                st.markdown(f"**{indikator['minyak']['icon']} Commodity: Crude Oil (IDR)**")
+                st.metric("Actual Price per Barrel", f"Rp {int(indikator['minyak']['sekarang']):,}".replace(',', '.'), f"{int(indikator['minyak']['delta']):,} IDR".replace(',', '.'))
 
-        # Kotak Kanan Bawah (FED RATE)
+        # Bottom Right (FED RATE)
         with col4:
             with st.container(border=True):
-                st.markdown(f"**{indikator['fed']['icon']} Kebijakan: Suku Bunga AS (Fed)**")
-                st.metric("Nilai Rate Aktual", f"{indikator['fed']['sekarang']:.2f}%", f"{indikator['fed']['delta']:.2f}%", delta_color="inverse")
+                st.markdown(f"**{indikator['fed']['icon']} Policy: Fed Interest Rate**")
+                st.metric("Actual Rate Value", f"{indikator['fed']['sekarang']:.2f}%", f"{indikator['fed']['delta']:.2f}%", delta_color="inverse")
 
-       # ---------------------------------------------------------
-        # BAGIAN ANALISIS LLM: ALASAN MULTIVARIAT
+        # ---------------------------------------------------------
+        # LLM ANALYSIS SECTION
         # ---------------------------------------------------------
         st.divider()
-        # 4. Subjudul trik pakai <div> agar ikon link hilang
-        st.markdown("<div style='font-size: 22px; font-weight: bold; margin-top: 15px; margin-bottom: 15px;'>🤖 Analisis Komprehensif Sistem Pakar</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size: 22px; font-weight: bold; margin-top: 15px; margin-bottom: 15px;'>🤖 Comprehensive Expert System Analysis</div>", unsafe_allow_html=True)
 
-        with st.spinner("Menyusun alasan keputusan berdasarkan data multivariat..."):
-            sentimen = "BULLISH (Sangat Positif)" if skor >= 2 else "BEARISH (Sangat Negatif)" if skor <= -2 else "SIDEWAYS (Konsolidasi Netral)"
+        with st.spinner("Synthesizing decision rationale based on multivariate data..."):
+            sentimen = "BULLISH (Strongly Positive)" if skor >= 2 else "BEARISH (Strongly Negative)" if skor <= -2 else "SIDEWAYS (Neutral Consolidation)"
             
             hasil_analisis = ambil_analisis_gemini(
                 "LSTM", hari_target, h_sekarang, h_prediksi, selisih, keputusan, sentimen, indikator, skor
             )
             
-            # Tampilan LLM bersih menggunakan st.info
+            # Clean LLM display using st.info
             st.info(hasil_analisis, icon="💡")
             
-            # ---------------------------------------------------------
-        # TAMPILKAN GRAFIK MULTIMODAL
+        # ---------------------------------------------------------
+        # DISPLAY MULTIMODAL CHART
         # ---------------------------------------------------------
         st.divider()
-        st.markdown("<div style='font-size: 22px; font-weight: bold; margin-top: 15px; margin-bottom: 5px;'>📈 Visualisasi Tren & Proyeksi Harga</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size: 22px; font-weight: bold; margin-top: 15px; margin-bottom: 5px;'>📈 Trend Visualization & Price Projections</div>", unsafe_allow_html=True)
         
-        with st.spinner("Memproses rendering grafik historis dan proyeksi..."):
-            # 1. Dapatkan deretan angka prediksi harian dari mesin LSTM
+        with st.spinner("Rendering historical and projection charts..."):
+            # 1. Fetch daily prediction sequence from LSTM engine
             list_prediksi = hitung_sekuens_prediksi(hari_target, model, scaler, df)
             
-            # 2. Suruh grafik_lstm meracik gambarnya (bg_color otomatis ikut warna BUY/SELL)
+            # 2. Render chart with dynamic buy/sell background color
             fig = buat_grafik_multimodal(df, list_prediksi, hari_target, bg_color)
             
-            # 3. Tampilkan di layar Streamlit
+            # 3. Display chart in Streamlit
             st.plotly_chart(fig, use_container_width=True)

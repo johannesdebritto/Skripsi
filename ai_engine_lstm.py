@@ -16,16 +16,11 @@ def muat_aset_ai():
     df = df[FITUR_MULTIVARIATE].dropna()
     return model, scaler, df
 
-# 3. Fungsi Prediksi Jangka Panjang (Momentum Decay)
+# 3. Fungsi Prediksi Jangka Panjang (Momentum Decay & Inertia)
 def hitung_prediksi_depan(hari_target, model, scaler, df):
     # Ambil data 30 hari terakhir dari dataset asli
     data_terakhir = df[FITUR_MULTIVARIATE].tail(TIME_STEPS).values
     current_sequence = scaler.transform(data_terakhir)
-    
-    # --- TAMBAHAN DEBUGGING ---
-    print("\n[DEBUG LSTM] Data Asli (Baris Terakhir):", data_terakhir[-1])
-    print("[DEBUG LSTM] Data Scaled (Baris Terakhir):", current_sequence[-1])
-    # --------------------------
     
     std_dev_scaled = np.std(current_sequence[:, 0])
     momentum_jangka_pendek = current_sequence[-1, 0] - current_sequence[-5, 0]
@@ -35,7 +30,12 @@ def hitung_prediksi_depan(hari_target, model, scaler, df):
     # Loop prediksi harian
     for i in range(hari_target):
         current_seq_reshaped = current_sequence.reshape(1, TIME_STEPS, len(FITUR_MULTIVARIATE))
-        next_gold_base = model.predict(current_seq_reshaped, verbose=0)[0, 0]
+        raw_pred = model.predict(current_seq_reshaped, verbose=0)[0, 0]
+        
+        # --- PERBAIKAN: INERTIA STABILIZER ---
+        # Mencegah runaway prediction (meroket) dengan menahan 30% nilainya di harga kemarin
+        harga_kemarin = current_sequence[-1, 0]
+        next_gold_base = (0.7 * raw_pred) + (0.3 * harga_kemarin)
         
         efek_gravitasi = momentum_jangka_pendek * (0.85 ** i)
         riak_harian = np.random.normal(0, std_dev_scaled * 0.2) 
@@ -53,6 +53,7 @@ def hitung_prediksi_depan(hari_target, model, scaler, df):
     
     return float(harga_final)
 
+# 4. Fungsi Prediksi Sekuens untuk Grafik
 def hitung_sekuens_prediksi(hari_target, model, scaler, df):
     # Mengambil data 30 hari terakhir buat awalan
     data_terakhir = df[FITUR_MULTIVARIATE].tail(30).values
@@ -66,7 +67,12 @@ def hitung_sekuens_prediksi(hari_target, model, scaler, df):
 
     for i in range(hari_target):
         current_seq_reshaped = temp_sequence.reshape(1, 30, len(FITUR_MULTIVARIATE))
-        next_gold_base = model.predict(current_seq_reshaped, verbose=0)[0, 0]
+        raw_pred = model.predict(current_seq_reshaped, verbose=0)[0, 0]
+        
+        # --- PERBAIKAN: INERTIA STABILIZER ---
+        # Sama seperti di atas, menggunakan smoothing ratio 70:30
+        harga_kemarin = temp_sequence[-1, 0]
+        next_gold_base = (0.7 * raw_pred) + (0.3 * harga_kemarin)
         
         efek_gravitasi = momentum_jangka_pendek * (0.85 ** i)
         riak_harian = np.random.normal(0, std_dev_scaled * 0.2) 

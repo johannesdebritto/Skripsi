@@ -6,25 +6,25 @@ def ambil_analisis_gemini(nama_model, hari_target, h_sekarang, h_prediksi, selis
         client = genai.Client(api_key="AQ.Ab8RN6LNkMoL0cFoc5973fF7sryM2pDV1rchjmNtm5Ud6Hz8QA")
 
         prompt_skripsi = f"""
-        Konteks Metodologi:
-        Sistem Pengambil Keputusan (SPK) menggunakan logika Berbasis Aturan (Rule-Based) yang mengawinkan proyeksi AI ({nama_model}) dengan analisis fundamental ekonomi makro (tren 30 hari terakhir).
+        Methodological Context:
+        The Decision Support System (DSS) utilizes a Rule-Based logic combining AI projection ({nama_model}) with macroeconomic fundamental analysis (last 30 days trends).
         
-        Data Analisis:
-        - Prediksi Harga Emas: Berubah Rp {int(selisih):,} menjadi Rp {int(h_prediksi):,}
-        - Kurs USD/IDR (Tren 30 Hari): {indikator['kurs']['teks']}
-        - Minyak Dunia (Tren 30 Hari): {indikator['minyak']['teks']}
-        - Fed Rate (Tren 30 Hari): {indikator['fed']['teks']}
+        Analysis Data:
+        - Gold Price Prediction: Changes by IDR {int(selisih):,} to IDR {int(h_prediksi):,}
+        - USD/IDR Exchange Rate (30-Day Trend): {indikator['kurs']['teks']}
+        - World Crude Oil (30-Day Trend): {indikator['minyak']['teks']}
+        - Fed Rate (30-Day Trend): {indikator['fed']['teks']}
         
-        Keputusan Akhir: {keputusan}
+        Final Decision: {keputusan}
         
-        Instruksi Wajib:
-        Buatlah argumen analitis yang KUAT, meyakinkan, dan mengalir (maksimal 2 kalimat) untuk menjelaskan mengapa SPK mengeluarkan keputusan '{keputusan}'.
+        Mandatory Instructions:
+        Construct a strong, convincing, and smooth analytical argument (maximum 2 sentences) explaining why the DSS generated the '{keputusan}' decision.
         
-        Aturan Penulisan:
-        1. WAJIB memulai argumen dengan penegasan metode, contoh: "Sistem Pendukung Keputusan (SPK) berbasis aturan (rule-based) menetapkan..." atau "Melalui evaluasi rule-based, SPK merekomendasikan..."
-        2. Lanjutkan dengan penjelasan ekonomi yang natural bertemunya "proyeksi arah harga AI" dengan "realita fundamental 30 hari terakhir" (Kurs, Minyak, Fed).
-        3. DILARANG KERAS menyebutkan angka skor (seperti +1, -2) atau ambang batas. Fokus murni pada logika tarik-menarik 4 variabel makroekonomi tersebut.
-        4. Dilarang menggunakan kalimat basa-basi.
+        Writing Rules:
+        1. MUST begin the statement by asserting the method, for example: "The rule-based Decision Support System (DSS) determines..." or "Through rule-based evaluation, the DSS recommends..."
+        2. Follow up with a natural economic explanation connecting the "AI price direction projection" with the "macroeconomic fundamental realities over the last 30 days" (Exchange Rate, Oil, Fed Rate).
+        3. STRICTLY PROHIBITED from mentioning numerical scores (e.g., +1, -2) or threshold values. Focus purely on the economic interaction among these 4 variables.
+        4. No conversational filler or introductory greetings.
         """
 
         response = client.models.generate_content(
@@ -34,4 +34,4 @@ def ambil_analisis_gemini(nama_model, hari_target, h_sekarang, h_prediksi, selis
         return response.text
 
     except Exception as e:
-        return f"Sistem Pendukung Keputusan (SPK) berbasis aturan (rule-based) menetapkan keputusan {keputusan} karena proyeksi algoritma {nama_model} divalidasi secara logis oleh pergerakan fundamental Kurs, Minyak, dan Fed Rate selama 30 hari terakhir."
+        return f"The rule-based Decision Support System (DSS) establishes the decision to '{keputusan}' because the projection from the {nama_model} algorithm is logically validated by fundamental movements in the Exchange Rate, Crude Oil, and Fed Rate over the past 30 days."

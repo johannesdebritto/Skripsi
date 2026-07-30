@@ -93,9 +93,13 @@ def hitung_sekuens_prediksi_xgb(hari_target, model, scaler, df):
         # 1. Prediksi return hari esok
         prediksi_return_base = model.predict(input_features.reshape(1, -1))[0]
         
-        # 2. Efek gravitasi dan riak harian
-        efek_gravitasi = prediksi_return_base * (0.85 ** i)
-        riak_harian = np.random.normal(0, std_dev_return * 0.2)
+        # 2. Efek gravitasi dan riak harian (DIPERBAIKI AGAR TIDAK FLAT)
+        # Decay dikurangi ke 0.98 agar tren jangka panjang tidak cepat meredup
+        efek_gravitasi = prediksi_return_base * (0.98 ** i)
+        
+        # Riak harian dinaikkan ke 1.2x std_dev agar fluktuasi grafik seimbang dengan historis
+        riak_harian = np.random.normal(0, std_dev_return * 1.2)
+        
         prediksi_return_final = efek_gravitasi + riak_harian
         
         # 3. Update harga berjalan
@@ -125,8 +129,7 @@ def hitung_sekuens_prediksi_xgb(hari_target, model, scaler, df):
         input_features[7] = np.std(history_return[-7:], ddof=1)             # Volatilitas_Return_7Hari
         input_features[8] = np.std(history_return[-30:], ddof=1)            # Volatilitas_Return_30Hari
         
-        # Untuk indeks 9, 10, 11 (Faktor Eksternal), kita biarkan nilainya menggunakan 
-        # data hari terakhir karena kita tidak bisa memprediksi masa depan Kurs/Minyak/The Fed.
+        # Untuk indeks 9, 10, 11 (Faktor Eksternal), dibiarkan menggunakan nilai hari terakhir
         
     return list_harga_prediksi
 
