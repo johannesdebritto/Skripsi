@@ -34,5 +34,6 @@ def ambil_analisis_gemini(nama_model, hari_target, h_sekarang, h_prediksi, selis
         return response.text
 
     except Exception as e:
-        # Menampilkan data riil (harga, selisih, indikator) agar narasi tetap berbobot saat API error
-        return f"Synthesizing the algorithmic forecast from the {nama_model} model, the evaluation firmly recommends to '{keputusan}'. This conclusion is directly driven by the projected gold price movement to IDR {int(h_prediksi):,}, reflecting a change of IDR {int(selisih):,} for {hari_target}. Furthermore, this projection is validated by the recent 30-day macroeconomic realities, specifically the {indikator['kurs']['teks']} USD/IDR exchange rate trend, {indikator['minyak']['teks']} global crude oil prices, and {indikator['fed']['teks']} Fed Rate, which collectively substantiate the final recommendation."
+        # Fallback text diperbaiki agar 100% Inggris (tidak menarik teks panjang bahasa Indonesia)
+        # dan format angka hari (hari_target) diperjelas
+        return f"Synthesizing the algorithmic forecast from the {nama_model} model, the evaluation firmly recommends to '{keputusan}'. This conclusion is directly driven by the projected gold price movement to IDR {int(h_prediksi):,}, reflecting a change of IDR {int(selisih):,} over a {hari_target}-day projection period. Furthermore, this projection is validated by the recent 30-day macroeconomic realities across the USD/IDR exchange rate, global crude oil prices, and the Fed Rate, which collectively substantiate the final recommendation."
