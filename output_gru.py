@@ -93,7 +93,7 @@ def tampilkan_hasil_gru(hari_target, model, scaler, df):
         st.markdown(html_metrik, unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 5. 2x2 GRID: INDICATOR EVIDENCE
+        # 5. 2x2 GRID: INDICATOR EVIDENCE (Perbaikan Grid Rapi)
         st.markdown("<div style='font-size: 22px; font-weight: bold; margin-top: 15px; margin-bottom: 5px;'>🔍 Core Decision Indicators</div>", unsafe_allow_html=True)
         st.caption("Multivariate data (last 30 days) underlying the expert system analysis.")
 
