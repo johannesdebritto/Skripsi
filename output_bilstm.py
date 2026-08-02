@@ -1,30 +1,32 @@
+import datetime
 from datetime import datetime, timedelta
+import pandas as pd
+import streamlit as st
+
 from ai_engine_bilstm import hitung_sekuens_prediksi
 from gemini_helper import ambil_analisis_gemini
 from grafik_bilstm import buat_grafik_multimodal_bilstm
 from spk_logic_bilstm import evaluasi_spk
-import pandas as pd
-import streamlit as st
 
 
 def tampilkan_hasil_bilstm(hari_target, model, scalers, df):
   scaler_fitur = scaler_target = scalers
 
-  # 1. LOGIKA TANGGAL
-  col_tanggal = next((c for c in ['Tanggal', 'Date'] if c in df.columns), None)
+  # ACCURATE DATE LOGIC
+  col_tanggal = next((c for c in ["Tanggal", "Date"] if c in df.columns), None)
   tanggal_terakhir = (
       pd.to_datetime(df[col_tanggal].iloc[-1])
       if col_tanggal
       else datetime.now()
   )
 
-  tanggal_target = (tanggal_terakhir + timedelta(days=int(hari_target))).strftime(
-      '%d/%m/%Y'
-  )
-  tanggal_sekarang_str = tanggal_terakhir.strftime('%d %B %Y').upper()
+  tanggal_target = (
+      tanggal_terakhir + timedelta(days=int(hari_target))
+  ).strftime("%d/%m/%Y")
+  tanggal_sekarang_str = tanggal_terakhir.strftime("%d %B %Y").upper()
 
   with st.spinner(
-      f'Bi-LSTM engine is calculating projections for {tanggal_target}...'
+      f"Bi-LSTM Engine is calculating projections for {tanggal_target}..."
   ):
     (
         skor,
@@ -37,110 +39,157 @@ def tampilkan_hasil_bilstm(hari_target, model, scalers, df):
         margin,
     ) = evaluasi_spk(hari_target, model, scaler_fitur, scaler_target, df)
 
-    # 2. JUDUL & BANNER KEPUTUSAN UTAMA
+    # 1. TITLE (Responsive Font Size)
     st.markdown(
-        f"<h3 style='text-align: center; margin-bottom: 5px;'>📊 BI-LSTM"
-        f' DECISION RESULT ({tanggal_target})</h3>',
+        f"<div style='text-align: center; font-size: clamp(20px, 4vw, 28px);"
+        " font-weight: bold; margin-bottom: 10px;'>📊 BI-LSTM DECISION RESULTS"
+        f" ({tanggal_target})</div>",
+        unsafe_allow_html=True,
+    )
+    st.divider()
+
+    # ---------------------------------------------------------
+    # MAIN DECISION BANNER (Responsive Padding & Font)
+    # ---------------------------------------------------------
+    warna_map = {"success": "#28a745", "error": "#dc3545"}
+    bg_color = warna_map.get(warna, "#ffb300")
+
+    st.markdown(
+        f"<div style='text-align: center; border-radius: 12px; padding: 15px"
+        f" 10px; background-color: {bg_color};'>"
+        "<p style='color: white; font-weight: 900; margin: 0px; font-size:"
+        " clamp(32px, 8vw, 48px); text-transform: uppercase; font-family:"
+        f" sans-serif; letter-spacing: 1px;'>{keputusan}</p>"
+        "</div>",
         unsafe_allow_html=True,
     )
 
-    warna_map = {'success': '#28a745', 'error': '#dc3545'}
-    bg_color = warna_map.get(warna, '#ffb300')
-
     st.markdown(
-        f"<div style='text-align: center; border-radius: 10px; padding: 12px"
-        f" 20px; background-color: {bg_color}; margin-bottom: 10px;'>"
-        f"<h1 style='color: white; margin: 0; font-size: 36px;"
-        f" letter-spacing: 1px;'>{keputusan}</h1>"
-        '</div>',
+        "<p style='text-align: center; color: #888888; font-size: 12px;"
+        " margin-top: 8px;'>⚠️ <b>Note:</b> Transaction decisions are"
+        " entirely at your own discretion. This AI serves as a probabilistic"
+        " forecasting tool.</p>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ---------------------------------------------------------
+    # KEY METRICS BANNER (Mobile-Friendly Flex Layout)
+    # ---------------------------------------------------------
+    str_h_sekarang = f"Rp {int(h_sekarang):,}".replace(",", ".")
+    str_h_prediksi = f"Rp {int(h_prediksi):,}".replace(",", ".")
+    str_margin = f"Rp {int(margin):,}".replace(",", ".")
+
+    warna_selisih = (
+        "#28a745" if selisih > 0 else "#dc3545" if selisih < 0 else "#888888"
+    )
+    tanda = "+" if selisih > 0 else ""
+    str_selisih = f"{tanda}{int(selisih):,} IDR".replace(",", ".")
+
+    html_metrik = f"""
+        <div style="
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: space-around; 
+            align-items: center; 
+            gap: 15px;
+            background: linear-gradient(135deg, rgba(240, 242, 246, 0.8), rgba(255, 255, 255, 0.5)); 
+            padding: 15px; 
+            border-radius: 16px; 
+            margin-bottom: 20px; 
+            border: 1px solid rgba(0,0,0,0.08);
+        ">
+            <div style="text-align: center; flex: 1 1 250px; padding: 8px 0;">
+                <p style="margin:0; font-size: 12px; color: #6b7280; font-weight: 700; letter-spacing: 0.5px;">PRICE AS OF {tanggal_sekarang_str}</p>
+                <h3 style="margin: 4px 0 0 0; color: #1f2937; font-size: clamp(20px, 4vw, 24px);">{str_h_sekarang}</h3>
+            </div>
+            <div style="text-align: center; flex: 1 1 250px; padding: 8px 0;">
+                <p style="margin:0; font-size: 12px; color: #6b7280; font-weight: 700; letter-spacing: 0.5px;">BI-LSTM AI PROJECTION</p>
+                <h3 style="margin: 4px 0 0 0; color: #1f2937; font-size: clamp(20px, 4vw, 24px);">{str_h_prediksi}</h3>
+                <p style="margin: 2px 0 0 0; font-size: 13px; color: {warna_selisih}; font-weight: bold;">{str_selisih}</p>
+            </div>
+            <div style="text-align: center; flex: 1 1 250px; padding: 8px 0;">
+                <p style="margin:0; font-size: 12px; color: #6b7280; font-weight: 700; letter-spacing: 0.5px;">MARGIN LIMIT</p>
+                <h3 style="margin: 4px 0 0 0; color: #1f2937; font-size: clamp(20px, 4vw, 24px);">{str_margin}</h3>
+            </div>
+        </div>
+        """
+    st.markdown(html_metrik, unsafe_allow_html=True)
+
+    # ---------------------------------------------------------
+    # 2x2 GRID: CORE INDICATOR EVIDENCE (Efisisen & Clean Layout)
+    # ---------------------------------------------------------
+    st.markdown(
+        "<div style='font-size: 18px; font-weight: bold; margin-top: 10px;'"
+        ">🔍 Core Decision Indicators</div>",
+        unsafe_allow_html=True,
+    )
+    st.caption("Multivariate data underlying the analysis.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+      with st.container(border=True):
+        st.markdown(
+            f"**{indikator['ai']['icon']} Bi-LSTM AI Trend**",
+            help="Prediksi pergerakan harga oleh model Bi-LSTM",
+        )
+        st.metric(
+            "Estimated Profit/Loss",
+            f"Rp {int(indikator['ai']['delta']):,}".replace(",", "."),
+            indikator["ai"]["sentimen"],
+        )
+
+    with col2:
+      with st.container(border=True):
+        st.markdown(f"**{indikator['kurs']['icon']} USD/IDR Rate**")
+        st.metric(
+            "Exchange Rate",
+            f"Rp {int(indikator['kurs']['sekarang']):,}".replace(",", "."),
+            f"{int(indikator['kurs']['delta']):,} IDR".replace(",", "."),
+            delta_color="inverse",
+        )
+
+    col3, col4 = st.columns(2)
+    with col3:
+      with st.container(border=True):
+        st.markdown(f"**{indikator['minyak']['icon']} Crude Oil**")
+        st.metric(
+            "Price per Barrel",
+            f"Rp {int(indikator['minyak']['sekarang']):,}".replace(",", "."),
+            f"{int(indikator['minyak']['delta']):,} IDR".replace(",", "."),
+        )
+
+    with col4:
+      with st.container(border=True):
+        st.markdown(f"**{indikator['fed']['icon']} Fed Interest Rate**")
+        st.metric(
+            "Rate Value",
+            f"{indikator['fed']['sekarang']:.2f}%",
+            f"{indikator['fed']['delta']:.2f}%",
+            delta_color="inverse",
+        )
+
+    # ---------------------------------------------------------
+    # LLM ANALYSIS SECTION
+    # ---------------------------------------------------------
+    st.divider()
+    st.markdown(
+        "<div style='font-size: 18px; font-weight: bold;'>🤖 Expert System"
+        " Rationale</div>",
         unsafe_allow_html=True,
     )
 
-    st.caption(
-        '⚠️ **Note:** Transaction decisions are entirely at your own risk. '
-        'This AI is a probabilistic forecasting tool, not an absolute guarantee'
-        ' or financial advice.'
-    )
-
-    # 3. METRIK UTAMA (Layout Native Responsif)
-    st.markdown('---')
-    m1, m2, m3 = st.columns(3)
-    m1.metric(
-        f'PRICE ON {tanggal_sekarang_str}', f'IDR {int(h_sekarang):,}'
-    )
-    m2.metric(
-        'BI-LSTM PROJECTION',
-        f'IDR {int(h_prediksi):,}',
-        f'{int(selisih):,} IDR',
-    )
-    m3.metric('MARGIN LIMIT', f'IDR {int(margin):,}')
-
-    # 4. GRID INDIKATOR (Efisien dengan Loop)
-    st.markdown('### 🔍 Decision Foundation Indicators')
-    st.caption(
-        'Multivariate data (Last 30 days) underlying the expert system'
-        ' analysis.'
-    )
-
-    item_indikator = [
-        ('ai', 'Bi-LSTM Prediction Trend', 'profit'),
-        ('kurs', 'Macroeconomy: USD/IDR Rate', 'inverse'),
-        ('minyak', 'Commodity: Crude Oil (IDR)', 'normal'),
-        ('fed', 'Policy: US Fed Rate', 'inverse'),
-    ]
-
-    cols = st.columns(2)
-    for idx, (key, label, delta_mode) in enumerate(item_indikator):
-      data = indikator[key]
-      with cols[idx % 2]:
-        with st.container(border=True):
-          st.markdown(f"**{data['icon']} {label}**")
-
-          if key == 'ai':
-            ai_delta_val = int(data['delta'])
-            ai_sentimen = str(data['sentimen']).strip()
-
-            if ai_delta_val < 0:
-              val_str = f'-IDR {abs(ai_delta_val):,}'
-              if not ai_sentimen.startswith('-'):
-                ai_sentimen = f'- {ai_sentimen}'
-            else:
-              val_str = f'IDR {ai_delta_val:,}'
-              ai_sentimen = ai_sentimen.lstrip('- ')
-
-            st.metric('Est. Profit/Loss', val_str, ai_sentimen)
-          elif key == 'fed':
-            st.metric(
-                'Actual Fed Rate',
-                f"{data['sekarang']:.2f}%",
-                f"{data['delta']:.2f}%",
-                delta_color=delta_mode,
-            )
-          else:
-            st.metric(
-                'Actual Value',
-                f"IDR {int(data['sekarang']):,}",
-                f"{int(data['delta']):,} IDR",
-                delta_color=delta_mode,
-            )
-
-    # 5. BAGIAN ANALISIS LLM
-    st.markdown('---')
-    st.markdown('### 🤖 Comprehensive Expert System Analysis')
-
-    with st.spinner(
-        'Generating decision rationale based on multivariate data...'
-    ):
+    with st.spinner("Synthesizing decision rationale..."):
       sentimen = (
-          'BULLISH (Strongly Positive)'
+          "BULLISH (Strongly Positive)"
           if skor >= 2
-          else 'BEARISH (Strongly Negative)'
+          else "BEARISH (Strongly Negative)"
           if skor <= -2
-          else 'SIDEWAYS (Neutral Consolidation)'
+          else "SIDEWAYS (Neutral Consolidation)"
       )
 
       hasil_analisis = ambil_analisis_gemini(
-          'Bi-LSTM',
+          "Bi-LSTM",
           hari_target,
           h_sekarang,
           h_prediksi,
@@ -150,15 +199,25 @@ def tampilkan_hasil_bilstm(hari_target, model, scalers, df):
           indikator,
           skor,
       )
-      st.info(hasil_analisis, icon='💡')
 
-  # 6. BAGIAN GRAFIK MULTIMODAL
-  st.markdown('---')
-  st.markdown('### 📈 Trend & Price Projection Visualization')
+      st.info(hasil_analisis, icon="💡")
 
-  with st.spinner('Rendering historical and projection charts...'):
-    list_prediksi = hitung_sekuens_prediksi(hari_target, model, scalers, df)
-    fig = buat_grafik_multimodal_bilstm(
-        df, list_prediksi, hari_target, bg_color
+    # ---------------------------------------------------------
+    # DISPLAY MULTIMODAL CHART
+    # ---------------------------------------------------------
+    st.divider()
+    st.markdown(
+        "<div style='font-size: 18px; font-weight: bold;'>📈 Trend"
+        " Visualization</div>",
+        unsafe_allow_html=True,
     )
-    st.plotly_chart(fig, use_container_width=True)
+
+    with st.spinner("Rendering charts..."):
+      list_prediksi = hitung_sekuens_prediksi(
+          hari_target, model, scalers, df
+      )
+      fig = buat_grafik_multimodal_bilstm(
+          df, list_prediksi, hari_target, bg_color
+      )
+
+      st.plotly_chart(fig, use_container_width=True)
