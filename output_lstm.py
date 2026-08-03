@@ -77,7 +77,7 @@ def _render_metrics_banner(tanggal_sekarang_str: str, h_sekarang: float, h_predi
         margin-bottom: 24px;
     ">
         <div style="text-align: center; padding: 4px;">
-            <span style="font-size: 11px; color: #6b7280; font-weight: 700; letter-spacing: 0.5px; display: block;">wkwkwk PRICE AS OF {tanggal_sekarang_str}</span>
+            <span style="font-size: 11px; color: #6b7280; font-weight: 700; letter-spacing: 0.5px; display: block;">PRICE AS OF {tanggal_sekarang_str}</span>
             <h3 style="margin: 6px 0 0 0; color: #1f2937; font-size: clamp(18px, 2.5vw, 22px); font-weight: 700;">{str_h_sekarang}</h3>
         </div>
         <div style="text-align: center; padding: 4px; border-left: 1px solid rgba(0,0,0,0.05); border-right: 1px solid rgba(0,0,0,0.05);">
