@@ -66,7 +66,7 @@ def buat_grafik_multimodal_bilstm(df, list_prediksi, hari_target, warna_garis):
     # 4. Rapikan Layout & Bikin Kotak Legend Tersendiri
     fig.update_layout(
         title={
-            'text': "<b>Multimodal Chart: Historical vs Bi-LSTM Projection</b>",
+            'text': "<b>Chart: Historical vs Bi-LSTM Projection</b>",
             'y': 0.98,
             'x': 0.5,
             'xanchor': 'center',

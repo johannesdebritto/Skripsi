@@ -85,7 +85,7 @@ def buat_grafik_bigru_multimodal(df, list_prediksi, hari_target, warna_garis):
     # 4. Layout & Legend Rapi
     fig.update_layout(
         title={
-            'text': "<b>Multimodal Analysis: Indicator Trends & BiGRU Projection</b>", 
+            'text': "<b>Chart: Indicator Trends & BiGRU Projection</b>", 
             'y': 0.98, 'x': 0.5, 'xanchor': 'center', 'yanchor': 'top'
         },
         yaxis_title="Movement Index (Base = 100)", 
