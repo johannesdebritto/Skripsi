@@ -17,7 +17,7 @@ def _get_target_and_current_date(df: pd.DataFrame, hari_target: int):
     tanggal_terakhir = (
         pd.to_datetime(df[col_tanggal].iloc[-1])
         if col_tanggal
-        else datetime.now()
+        else (pd.to_datetime(df.index[-1]) if len(df.index) > 0 else datetime.now())
     )
 
     tanggal_target = (tanggal_terakhir + timedelta(days=int(hari_target))).strftime("%d/%m/%Y")
@@ -124,7 +124,13 @@ def _render_indicator_cards(indikator: dict):
 # ==============================================================================
 
 def tampilkan_hasil_bilstm(hari_target, model, scalers, df):
-    scaler_fitur = scaler_target = scalers
+    # Penanganan tuple/dict/single object scaler agar konsisten dengan evaluasi_spk
+    if isinstance(scalers, (tuple, list)) and len(scalers) == 2:
+        scaler_fitur, scaler_target = scalers
+    elif isinstance(scalers, dict) and "scaler_fitur" in scalers:
+        scaler_fitur, scaler_target = scalers["scaler_fitur"], scalers["scaler_target"]
+    else:
+        scaler_fitur = scaler_target = scalers
 
     _, tanggal_target, tanggal_sekarang_str = _get_target_and_current_date(df, hari_target)
 
