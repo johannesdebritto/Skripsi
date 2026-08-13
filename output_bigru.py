@@ -17,7 +17,7 @@ def _get_target_and_current_date(df: pd.DataFrame, hari_target: int):
     tanggal_terakhir = (
         pd.to_datetime(df[col_tanggal].iloc[-1])
         if col_tanggal
-        else datetime.now()
+        else (pd.to_datetime(df.index[-1]) if len(df.index) > 0 else datetime.now())
     )
 
     tanggal_target = (tanggal_terakhir + timedelta(days=int(hari_target))).strftime("%d/%m/%Y")
